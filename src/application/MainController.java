@@ -163,7 +163,7 @@ public class MainController implements Initializable {
 
 	}
 	/**
-	 * 
+	 * Displays the about panel
 	 * 
 	 */
 	private void displayAbout() {
