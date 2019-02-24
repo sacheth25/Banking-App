@@ -44,7 +44,7 @@
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
                         </Label>
-                        <TextField fx:id="tf_initial_amount">
+                        <TextField fx:id="tf_initial_amount" >
                            <padding>
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
@@ -57,7 +57,7 @@
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
                         </Label>
-                        <TextField fx:id="tf_annual_return">
+                        <TextField fx:id="tf_annual_return" >
                            <padding>
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
@@ -70,7 +70,7 @@
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
                         </Label>
-                        <TextField fx:id="tf_tax_rate">
+                        <TextField fx:id="tf_tax_rate" >
                            <padding>
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
@@ -83,7 +83,7 @@
                               <Insets bottom="6.0" top="6.0" />
                            </padding>
                         </Label>
-                        <TextField fx:id="tf_annual_inflation">
+                        <TextField fx:id="tf_annual_inflation" >
                            <padding>
                               <Insets bottom="6.0" top="6.0" />
                            </padding>

@@ -13,12 +13,12 @@ import javafx.scene.layout.VBox;
 
 public class Main extends Application {
 	
-	
+	private static VBox root;
 	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			VBox root = (VBox) FXMLLoader.load(getClass().getResource("Sample.fxml"));
+			root = (VBox) FXMLLoader.load(getClass().getResource("Sample.fxml"));
 			primaryStage.setScene(new Scene(root));
 			primaryStage.setResizable(false);
 			primaryStage.show();
@@ -29,5 +29,9 @@ public class Main extends Application {
 	
 	public static void main(String[] args) {
 		launch(args);
+	}
+	
+	public static VBox getRoot() {
+		return root;
 	}
 }
