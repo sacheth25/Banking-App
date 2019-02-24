@@ -14,11 +14,23 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
@@ -36,6 +48,18 @@ public class MainController implements Initializable {
 	private ArrayList<TextField> textFields;
 	private double[] graph_values;
 	private double[] graph_values_real;
+	
+	@FXML
+    private MenuItem menu_save;
+
+    @FXML
+    private MenuItem menu_load;
+
+    @FXML
+    private MenuItem menu_reset;
+
+    @FXML
+    private MenuItem menu_about;
 
     @FXML
     private TextField tf_initial_amount;
@@ -88,14 +112,7 @@ public class MainController implements Initializable {
     void generateResultsClicked() {
     	//Go through each node, check if a Text Field has numbers or not
     	//Get input and store into a map
-    	int count = 0;
-    	for(TextField t : textFields) {
-    		if(isGoodInput(t)) {
-    			
-    			count++;
-    		}
-    	}
-    	if(count == 5) {
+    	if(isGoodValues()) {
     		for(TextField t : textFields) {
     			double value = Double.parseDouble(t.getText().trim());
     			values.add(value);
@@ -118,13 +135,14 @@ public class MainController implements Initializable {
 		textFields.add(tf_tax_rate);
 		textFields.add(tf_annual_inflation);
 		textFields.add(tf_annual_fee);
+		//Setting up the choice box
 		cb_type_of_fee.getItems().add("As a percentage of the interest earned");
 		cb_type_of_fee.getItems().add("As a percentage of the invested amount");
 		cb_type_of_fee.setValue("As a percentage of the interest earned");
 		generate_button.setOnAction(e -> generateResultsClicked());
 		reset_button.setOnAction(e -> resetValues());
 		
-		
+		//Setting Up the graphs
 		inflation_x_axis = new CategoryAxis();
 		inflation_y_axis = new NumberAxis();
         inflation_x_axis.setLabel("Years");       
@@ -136,8 +154,97 @@ public class MainController implements Initializable {
         real_x_axis.setLabel("Years");       
         real_y_axis.setLabel("Amount of money");
         real_bar_graph.setTitle("Real adjusted ROI");
+        
+        //Setting up menu functions
+        menu_save.setOnAction(e -> saveToFile());;
+        menu_load.setOnAction(e -> loadFromFile(e));
+        menu_reset.setOnAction(e -> resetValues());       
+        menu_about.setOnAction(e -> displayAbout());
+
 	}
-		
+	/**
+	 * 
+	 * 
+	 */
+	private void displayAbout() {
+		// TODO Auto-generated method stub
+		Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Info");
+        alert.setHeaderText("About");
+        alert.setContentText("This App allows you to calculate a return on invesment\nand provides a graph");
+        alert.showAndWait();
+	}
+	/**
+	 * Reads in from a file
+	 * @param event used to handle the button 
+	 */
+	private void loadFromFile(ActionEvent event) {
+		// TODO Auto-generated method stub
+		try {
+			FileChooser fileChooser = new FileChooser();
+			fileChooser.setTitle("Open Resource File");
+			File file = fileChooser.showOpenDialog(new Stage());
+			//Check for individual errors
+			if(file == null) {
+				throw new IOException("File not choosen");
+			}
+			BufferedReader br = new BufferedReader(new FileReader(file)); 
+			if(!br.readLine().equals("ROI")) {
+				br.close();
+				throw new IOException("Incorrect File");
+			}
+			int index = 0;    
+			String text;
+			textFields.clear();
+	        while((text = br.readLine()) != null){  
+	        	textFields.add(new TextField(text));
+	        }  
+	        br.close();      
+			
+		}
+		catch(IOException e) {
+			Alert alert = new Alert(AlertType.INFORMATION);
+	        alert.setTitle("Error");
+	        alert.setHeaderText("Load from File");
+	        alert.setContentText(e.getMessage());
+	        alert.showAndWait();
+		}
+	}
+	/**
+	 * Saves the data in the input field to a file
+	 */
+	private void saveToFile() {
+		// TODO Auto-generated method stub
+		if(isGoodValues()) {
+			try {
+				String fileName = "ROI-" + values.get(0) + ".txt";
+			    BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+			    writer.write("ROI\n");
+			    for(TextField t : textFields) {
+			    	writer.write(t.getText().trim() + "\n");
+			    }
+			    writer.close();
+			    Alert alert = new Alert(AlertType.INFORMATION);
+		        alert.setTitle("Success");
+		        alert.setHeaderText("Save to File");
+		        alert.setContentText("File saved to \"" + fileName + "\" The number is the initial amount.");
+		        alert.showAndWait();
+			}catch(IOException e) {
+				 Alert alert = new Alert(AlertType.INFORMATION);
+			        alert.setTitle("Error");
+			        alert.setHeaderText("Save to File");
+			        alert.setContentText("Could not save to file");
+			        alert.showAndWait();
+			}
+		}else {
+			Alert alert = new Alert(AlertType.INFORMATION);
+	        alert.setTitle("Error");
+	        alert.setHeaderText("Save to File");
+	        alert.setContentText("Please input proper data values");
+	        alert.showAndWait();
+		}
+	}
+	
 	/**
 	 * Resets the values of the TextFields, and resets the graphs
 	 */
@@ -146,6 +253,8 @@ public class MainController implements Initializable {
 			t.setText("");
 			t.setPromptText("");
 		}
+		inflation_bar_graph.getData().clear();
+    	real_bar_graph.getData().clear();
     }
 
 	/**
@@ -156,21 +265,36 @@ public class MainController implements Initializable {
 	public boolean isGoodInput(TextField t) {
 		double input;
 		try {
+			if(t.getText().trim().contentEquals("")) {
+				throw new NumberFormatException("Please Enter in a number");
+			}
 			input = Double.parseDouble(t.getText().trim());
-			System.out.println(input);
+			if(input <= 0) {
+				throw new NumberFormatException("Please Enter in a positive non zero number");
+			}
+			
 		}catch(NumberFormatException e){
 			t.setText("");
-			t.setPromptText("Please Enter In a Number!!!");
+			t.setPromptText(e.getMessage());
 			return false;
 		}
 		return true;
+	}
+	public boolean isGoodValues() {
+		int count = 0;
+    	for(TextField t : textFields) {
+    		if(isGoodInput(t)) {
+    			
+    			count++;
+    		}
+    	}
+    	return count == 5;
 	}
     /**
      * Calculates the return on investment and then graphs it
      * @param years the number of years that the ROI is calculated for
      */
     public void calculateReturn(int years) {
-    	System.out.println("Calculating Return on investment for " + years + " years");
     	//Values for calculation
     	double initial_amount = values.get(0);
     	double real_initial_amount = values.get(0);
@@ -197,13 +321,11 @@ public class MainController implements Initializable {
     		real_return_val = return_val / (1 + inflation_rate);
     		return_val -= (percentage_of_intrest)?(return_val * annual_fee):(initial_amount * annual_fee);
     		real_return_val -= (percentage_of_intrest)?(return_val * annual_fee):(initial_amount * annual_fee);
-    		System.out.println("Return for year " + (i + 1) + " " + initial_amount);
     		initial_amount += return_val;
     		graph_values[i] = initial_amount;
     		series1.getData().add(new XYChart.Data<String, Number>("" + (i+1), initial_amount));
     		
     	}
-    	
     	//For real adjustment
     	for(int i = 0;i < years;i++) {
     		double real_return_val = (real_initial_amount * annual_return);
@@ -216,15 +338,11 @@ public class MainController implements Initializable {
     		series2.getData().add(new XYChart.Data<String, Number>("" + (i+1), real_initial_amount));
     		
     	}
-    	
     	//Creating the graphs
     	inflation_bar_graph.getData().addAll(series1);
     	real_bar_graph.getData().addAll(series2);
         
     }
-    
-    
-
 }
 
 
